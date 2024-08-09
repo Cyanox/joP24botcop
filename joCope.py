@@ -4,7 +4,7 @@ from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from const import LOGIN, PASSWORD
+from const import LOGIN, PASSWORD, URL, PRICE_MAX, PRICE_CAT, NB_PLACE
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
@@ -20,7 +20,8 @@ firefox_options.set_preference('useAutomationExtension', False)
 firefox_options.set_preference("webdriver.firefox.driver", "")
 
 # Modifier l'User-Agent pour un user-agent classique
-firefox_options.set_preference("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0")
+firefox_options.set_preference("general.useragent.override",
+                               "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0")
 
 # D'autres options de confidentialité pour éviter la détection
 firefox_options.set_preference("privacy.trackingprotection.enabled", True)
@@ -34,9 +35,7 @@ firefox_options.set_preference("media.peerconnection.enabled", False)  # Désact
 firefox_options.set_preference("network.http.sendRefererHeader", 0)  # Désactiver l'envoi du referer
 driver.execute_script("delete window['navigator']['webdriver']")
 
-URL = ""
-PRICE_MAX = 100
-PRICE_CAT = 148.5
+
 def log_in():
     driver.get("https://connect.paris2024.org/oidc/OP_LoginPage.php")
     time.sleep(5)
@@ -56,18 +55,20 @@ def check_availability():
     panier = False
     while not panier:
         driver.get(URL)
-        #driver.get("https://ticket-resale.paris2024.org/tickets/all/1/1/18410564")
 
         time.sleep(3)
         try:
-            offers = driver.find_elements(By.CSS_SELECTOR, "#EventDetailsAndListingCard > div.Card.Card-onEventDetailsPage.Card-isMobileCard.EventDetail-Listing.js-EventDetail-Listing > div.EventEntryList.js-EventEntryList.EventEntryList-clearFloat.u-flexboxSortingContainer.js-EventEntryList-noSeatmap  > div[data-offer-id]")
+            offers = driver.find_elements(By.CSS_SELECTOR,
+                                          "#EventDetailsAndListingCard > div.Card.Card-onEventDetailsPage.Card-isMobileCard.EventDetail-Listing.js-EventDetail-Listing > div.EventEntryList.js-EventEntryList.EventEntryList-clearFloat.u-flexboxSortingContainer.js-EventEntryList-noSeatmap  > div[data-offer-id]")
         except:
             print("Pas trouvé :(")
             pass
         else:
             for offer in offers:
                 float(offer.get_attribute("data-splitting-possibility-prices"))
-                if float(offer.get_attribute("data-splitting-possibility-prices")) < PRICE_MAX or float(offer.get_attribute("data-splitting-possibility-prices")) == PRICE_CAT:
+                if float(offer.get_attribute("data-splitting-possibility-prices")) == NB_PLACE and (float(
+                        offer.get_attribute("data-splitting-possibility-prices")) < PRICE_MAX or float(
+                        offer.get_attribute("data-splitting-possibility-prices")) == PRICE_CAT):
                     try:
                         driver.execute_script("arguments[0].click();", offer)
                     except:
@@ -97,6 +98,7 @@ def check_availability():
                                 pass
     time.sleep(7200)
 
+
 def open_window():
     print('Fenêtre')
     # Créer une fenêtre principale
@@ -117,8 +119,9 @@ def open_window():
     # Lancer la boucle principale pour afficher la fenêtre
     root.mainloop()
 
+
 def main():
-    #log_in()
+    # log_in()
     check_availability()
     time.sleep(7200)
     driver.close()
